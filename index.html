@@ -326,6 +326,7 @@
             opacity: 0.5;
         }
 
+        /* Modales */
         .modal {
             display: none;
             position: fixed;
@@ -336,6 +337,12 @@
             background: rgba(0,0,0,0.5);
             z-index: 1000;
             backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .modal-content {
@@ -349,6 +356,119 @@
             max-width: 500px;
             width: 90%;
             box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -40%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .modal-message {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .modal-item-detail {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .modal-item-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .modal-item-info {
+            flex: 1;
+        }
+
+        .modal-item-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .modal-item-list {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .modal-btn-cancel {
+            background: #f1f3f5;
+            color: #495057;
+        }
+
+        .modal-btn-cancel:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .modal-btn-delete {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+            color: white;
+        }
+
+        .modal-btn-delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.4);
         }
 
         .close {
@@ -358,6 +478,7 @@
             font-size: 28px;
             cursor: pointer;
             color: #999;
+            transition: color 0.3s ease;
         }
 
         .close:hover {
@@ -392,6 +513,10 @@
                 margin-top: 10px;
                 width: 100%;
                 justify-content: flex-end;
+            }
+            
+            .modal-actions {
+                flex-direction: column;
             }
         }
     </style>
@@ -447,10 +572,58 @@
         </div>
     </div>
 
+    <!-- Modal para confirmar eliminación de producto -->
+    <div id="deleteProductModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeDeleteProductModal()">&times;</span>
+            <div class="modal-header">
+                <div class="modal-icon">🗑️</div>
+                <div class="modal-title">¿Eliminar producto?</div>
+                <div class="modal-message">Esta acción no se puede deshacer</div>
+            </div>
+            <div class="modal-item-detail" id="deleteProductDetail">
+                <!-- Se llenará dinámicamente -->
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-cancel" onclick="closeDeleteProductModal()">
+                    <span>✖</span> Cancelar
+                </button>
+                <button class="modal-btn modal-btn-delete" onclick="confirmDeleteProduct()">
+                    <span>🗑️</span> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para confirmar eliminación de lista -->
+    <div id="deleteListModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeDeleteListModal()">&times;</span>
+            <div class="modal-header">
+                <div class="modal-icon">📋🗑️</div>
+                <div class="modal-title">¿Eliminar lista completa?</div>
+                <div class="modal-message">Esta acción eliminará la lista y todos sus productos. No se puede deshacer.</div>
+            </div>
+            <div class="modal-item-detail" id="deleteListDetail">
+                <!-- Se llenará dinámicamente -->
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-cancel" onclick="closeDeleteListModal()">
+                    <span>✖</span> Cancelar
+                </button>
+                <button class="modal-btn modal-btn-delete" onclick="confirmDeleteList()">
+                    <span>🗑️</span> Eliminar lista
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let currentListId = null;
         let editingItem = null;
         let editingListName = null;
+        let itemToDelete = null;
+        let listToDelete = null;
         let lists = JSON.parse(localStorage.getItem('shoppingLists')) || [];
         let userInfo = JSON.parse(localStorage.getItem('userInfo')) || {
             name: 'Tu Nombre',
@@ -541,8 +714,35 @@
             }
         }
 
-        function deleteItem(listId, itemId) {
-            if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
+        // Funciones para el modal de eliminar producto
+        function openDeleteProductModal(listId, itemId) {
+            const list = lists.find(l => l.id === listId);
+            const item = list?.items.find(i => i.id === itemId);
+            
+            if (list && item) {
+                itemToDelete = { listId, itemId };
+                
+                const detailDiv = document.getElementById('deleteProductDetail');
+                detailDiv.innerHTML = `
+                    <div class="modal-item-icon">🛒</div>
+                    <div class="modal-item-info">
+                        <div class="modal-item-name">${item.name}</div>
+                        <div class="modal-item-list">Lista: ${list.name}</div>
+                    </div>
+                `;
+                
+                document.getElementById('deleteProductModal').style.display = 'block';
+            }
+        }
+
+        function closeDeleteProductModal() {
+            document.getElementById('deleteProductModal').style.display = 'none';
+            itemToDelete = null;
+        }
+
+        function confirmDeleteProduct() {
+            if (itemToDelete) {
+                const { listId, itemId } = itemToDelete;
                 const list = lists.find(l => l.id === listId);
                 if (list) {
                     list.items = list.items.filter(item => item.id !== itemId);
@@ -550,6 +750,44 @@
                     renderLists();
                 }
             }
+            closeDeleteProductModal();
+        }
+
+        // Funciones para el modal de eliminar lista
+        function openDeleteListModal(listId) {
+            const list = lists.find(l => l.id === listId);
+            
+            if (list) {
+                listToDelete = listId;
+                
+                const detailDiv = document.getElementById('deleteListDetail');
+                detailDiv.innerHTML = `
+                    <div class="modal-item-icon">📋</div>
+                    <div class="modal-item-info">
+                        <div class="modal-item-name">${list.name}</div>
+                        <div class="modal-item-list">${list.items.length} productos • ${list.createdAt}</div>
+                    </div>
+                `;
+                
+                document.getElementById('deleteListModal').style.display = 'block';
+            }
+        }
+
+        function closeDeleteListModal() {
+            document.getElementById('deleteListModal').style.display = 'none';
+            listToDelete = null;
+        }
+
+        function confirmDeleteList() {
+            if (listToDelete) {
+                lists = lists.filter(l => l.id !== listToDelete);
+                saveLists();
+                renderLists();
+                if (currentListId === listToDelete) {
+                    currentListId = null;
+                }
+            }
+            closeDeleteListModal();
         }
 
         function toggleComplete(listId, itemId) {
@@ -602,17 +840,6 @@
         function cancelEditListName() {
             editingListName = null;
             renderLists();
-        }
-
-        function deleteList(listId) {
-            if (confirm('¿Estás seguro de que quieres eliminar esta lista?')) {
-                lists = lists.filter(l => l.id !== listId);
-                saveLists();
-                renderLists();
-                if (currentListId === listId) {
-                    currentListId = null;
-                }
-            }
         }
 
         function shareList(listId) {
@@ -670,7 +897,7 @@
                                 <button class="btn btn-warning btn-sm" onclick="startEditListName('${list.id}')">✏️ Renombrar</button>
                             `}
                             <button class="btn btn-success btn-sm" onclick="setCurrentList('${list.id}')">✏️ Editar</button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteList('${list.id}')">🗑️ Eliminar</button>
+                            <button class="btn btn-danger btn-sm" onclick="openDeleteListModal('${list.id}')">🗑️ Eliminar</button>
                             <button class="btn btn-primary btn-sm" onclick="shareList('${list.id}')">📱 WhatsApp</button>
                         </div>
                     </div>
@@ -693,7 +920,7 @@
                                         ${currentListId === list.id && !editingItem ? `
                                             <div class="item-actions">
                                                 <button class="item-edit" onclick="startEditItem('${list.id}', '${item.id}')">✏️</button>
-                                                <button class="item-delete" onclick="deleteItem('${list.id}', '${item.id}')">🗑️</button>
+                                                <button class="item-delete" onclick="openDeleteProductModal('${list.id}', '${item.id}')">🗑️</button>
                                             </div>
                                         ` : ''}
                                     `}
@@ -710,11 +937,20 @@
             `).join('');
         }
 
-        // Cerrar modal al hacer clic fuera
+        // Cerrar modales al hacer clic fuera
         window.onclick = function(event) {
-            const modal = document.getElementById('userModal');
-            if (event.target === modal) {
+            const userModal = document.getElementById('userModal');
+            const deleteProductModal = document.getElementById('deleteProductModal');
+            const deleteListModal = document.getElementById('deleteListModal');
+            
+            if (event.target === userModal) {
                 closeUserModal();
+            }
+            if (event.target === deleteProductModal) {
+                closeDeleteProductModal();
+            }
+            if (event.target === deleteListModal) {
+                closeDeleteListModal();
             }
         }
     </script>
