@@ -114,6 +114,11 @@
             gap: 8px;
         }
 
+        .btn-sm {
+            padding: 10px 16px;
+            font-size: 14px;
+        }
+
         .btn-primary {
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             color: white;
@@ -132,6 +137,16 @@
         .btn-success:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(67, 233, 123, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffa726 0%, #ff7043 100%);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 167, 38, 0.4);
         }
 
         .btn-danger {
@@ -155,8 +170,13 @@
             border-radius: 16px;
             padding: 25px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            border: 1px solid #f0f0f0;
+            border: 2px solid transparent;
             transition: all 0.3s ease;
+        }
+
+        .list-card.active {
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.2);
         }
 
         .list-card:hover {
@@ -167,10 +187,16 @@
         .list-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             margin-bottom: 20px;
             padding-bottom: 15px;
             border-bottom: 2px solid #f0f0f0;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .list-title-container {
+            flex: 1;
         }
 
         .list-title {
@@ -179,62 +205,118 @@
             color: #333;
         }
 
+        .list-title-input {
+            font-size: 20px;
+            font-weight: 600;
+            padding: 8px 12px;
+            border: 2px solid #4facfe;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 300px;
+        }
+
         .list-actions {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .items-list {
             list-style: none;
+            min-height: 100px;
         }
 
         .item {
             display: flex;
             align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #f5f5f5;
+            padding: 15px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-radius: 12px;
             transition: all 0.3s ease;
-        }
-
-        .item:last-child {
-            border-bottom: none;
+            position: relative;
         }
 
         .item:hover {
-            background: #f8f9ff;
-            border-radius: 8px;
-            padding-left: 10px;
+            background: #e3f2fd;
+            transform: translateX(5px);
+        }
+
+        .item-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            accent-color: #4facfe;
+            cursor: pointer;
         }
 
         .item-text {
             flex: 1;
             font-size: 16px;
             color: #555;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .item-text.completed {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .item-edit-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid #4facfe;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .item-edit, .item-save, .item-cancel, .item-delete {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .item-edit {
+            background: #4facfe;
+            color: white;
+        }
+
+        .item-save {
+            background: #43e97b;
+            color: white;
+        }
+
+        .item-cancel {
+            background: #ffa726;
+            color: white;
         }
 
         .item-delete {
             background: #ff6b6b;
             color: white;
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            transition: all 0.3s ease;
         }
 
-        .item-delete:hover {
-            background: #ff5252;
+        .item-edit:hover, .item-save:hover, .item-cancel:hover, .item-delete:hover {
             transform: scale(1.1);
         }
 
         .empty-state {
             text-align: center;
-            padding: 40px;
+            padding: 40px 20px;
             color: #888;
         }
 
@@ -242,15 +324,6 @@
             font-size: 48px;
             margin-bottom: 20px;
             opacity: 0.5;
-        }
-
-        .share-section {
-            margin-top: 20px;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 12px;
-            color: white;
-            text-align: center;
         }
 
         .modal {
@@ -303,6 +376,22 @@
             
             .list-actions {
                 flex-direction: column;
+                width: 100%;
+            }
+            
+            .btn-sm {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .item {
+                flex-wrap: wrap;
+            }
+            
+            .item-actions {
+                margin-top: 10px;
+                width: 100%;
+                justify-content: flex-end;
             }
         }
     </style>
@@ -360,6 +449,8 @@
 
     <script>
         let currentListId = null;
+        let editingItem = null;
+        let editingListName = null;
         let lists = JSON.parse(localStorage.getItem('shoppingLists')) || [];
         let userInfo = JSON.parse(localStorage.getItem('userInfo')) || {
             name: 'Tu Nombre',
@@ -423,7 +514,7 @@
             saveLists();
             renderLists();
             document.getElementById('listNameInput').value = '';
-            currentListId = newList.id;
+            setCurrentList(newList.id);
         }
 
         function addProduct() {
@@ -434,6 +525,7 @@
             
             if (!currentListId) {
                 createNewList();
+                return;
             }
             
             const list = lists.find(l => l.id === currentListId);
@@ -450,12 +542,66 @@
         }
 
         function deleteItem(listId, itemId) {
+            if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
+                const list = lists.find(l => l.id === listId);
+                if (list) {
+                    list.items = list.items.filter(item => item.id !== itemId);
+                    saveLists();
+                    renderLists();
+                }
+            }
+        }
+
+        function toggleComplete(listId, itemId) {
             const list = lists.find(l => l.id === listId);
-            if (list) {
-                list.items = list.items.filter(item => item.id !== itemId);
+            const item = list?.items.find(i => i.id === itemId);
+            if (item) {
+                item.completed = !item.completed;
                 saveLists();
                 renderLists();
             }
+        }
+
+        function startEditItem(listId, itemId) {
+            editingItem = { listId, itemId };
+            renderLists();
+        }
+
+        function saveEditItem(listId, itemId, newName) {
+            const list = lists.find(l => l.id === listId);
+            const item = list?.items.find(i => i.id === itemId);
+            
+            if (item && newName && newName.trim()) {
+                item.name = newName.trim();
+                editingItem = null;
+                saveLists();
+                renderLists();
+            }
+        }
+
+        function cancelEditItem() {
+            editingItem = null;
+            renderLists();
+        }
+
+        function startEditListName(listId) {
+            editingListName = listId;
+            renderLists();
+        }
+
+        function saveEditListName(listId, newName) {
+            const list = lists.find(l => l.id === listId);
+            if (list && newName && newName.trim()) {
+                list.name = newName.trim();
+                editingListName = null;
+                saveLists();
+                renderLists();
+            }
+        }
+
+        function cancelEditListName() {
+            editingListName = null;
+            renderLists();
         }
 
         function deleteList(listId) {
@@ -474,8 +620,8 @@
             if (!list) return;
 
             const user = userInfo.name !== 'Tu Nombre' ? ` de ${userInfo.name}` : '';
-            const itemsText = list.items.map(item => `• ${item.name}`).join('\n');
-            const message = `🛒 Lista de compras${user}\n\n${list.name}\n${itemsText}\n\n📅 ${list.createdAt}`;
+            const itemsText = list.items.map(item => `• ${item.name} ${item.completed ? '✅' : '⬜'}`).join('\n');
+            const message = `🛒 Lista de compras${user}\n\n${list.name}\n${itemsText || '📝 Vacía'}\n\n📅 ${list.createdAt}`;
             
             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
             window.open(whatsappUrl, '_blank');
@@ -508,13 +654,23 @@
             container.innerHTML = lists.map(list => `
                 <div class="list-card ${currentListId === list.id ? 'active' : ''}">
                     <div class="list-header">
-                        <div>
-                            <h3 class="list-title">${list.name}</h3>
+                        <div class="list-title-container">
+                            ${editingListName === list.id ? `
+                                <input type="text" class="list-title-input" id="edit-list-${list.id}" value="${list.name}" placeholder="Nombre de la lista">
+                            ` : `
+                                <h3 class="list-title">${list.name}</h3>
+                            `}
                             <small style="color: #888;">${list.createdAt} • ${list.items.length} productos</small>
                         </div>
                         <div class="list-actions">
-                            <button class="btn btn-success btn-sm" onclick="setCurrentList('${list.id}')">Editar</button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteList('${list.id}')">Eliminar</button>
+                            ${editingListName === list.id ? `
+                                <button class="btn btn-success btn-sm" onclick="saveEditListName('${list.id}', document.getElementById('edit-list-${list.id}').value)">💾 Guardar</button>
+                                <button class="btn btn-danger btn-sm" onclick="cancelEditListName()">✖ Cancelar</button>
+                            ` : `
+                                <button class="btn btn-warning btn-sm" onclick="startEditListName('${list.id}')">✏️ Renombrar</button>
+                            `}
+                            <button class="btn btn-success btn-sm" onclick="setCurrentList('${list.id}')">✏️ Editar</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteList('${list.id}')">🗑️ Eliminar</button>
                             <button class="btn btn-primary btn-sm" onclick="shareList('${list.id}')">📱 WhatsApp</button>
                         </div>
                     </div>
@@ -522,10 +678,25 @@
                         <ul class="items-list">
                             ${list.items.map(item => `
                                 <li class="item">
-                                    <span class="item-text">${item.name}</span>
                                     ${currentListId === list.id ? `
-                                        <button class="item-delete" onclick="deleteItem('${list.id}', '${item.id}')">×</button>
+                                        <input type="checkbox" class="item-checkbox" ${item.completed ? 'checked' : ''} onchange="toggleComplete('${list.id}', '${item.id}')">
                                     ` : ''}
+                                    
+                                    ${editingItem && editingItem.listId === list.id && editingItem.itemId === item.id ? `
+                                        <input type="text" class="item-edit-input" id="edit-${item.id}" value="${item.name}" placeholder="Nombre del producto" autofocus>
+                                        <div class="item-actions">
+                                            <button class="item-save" onclick="saveEditItem('${list.id}', '${item.id}', document.getElementById('edit-${item.id}').value)">💾</button>
+                                            <button class="item-cancel" onclick="cancelEditItem()">✖</button>
+                                        </div>
+                                    ` : `
+                                        <span class="item-text ${item.completed ? 'completed' : ''}" onclick="${currentListId === list.id ? `startEditItem('${list.id}', '${item.id}')` : ''}">${item.name}</span>
+                                        ${currentListId === list.id && !editingItem ? `
+                                            <div class="item-actions">
+                                                <button class="item-edit" onclick="startEditItem('${list.id}', '${item.id}')">✏️</button>
+                                                <button class="item-delete" onclick="deleteItem('${list.id}', '${item.id}')">🗑️</button>
+                                            </div>
+                                        ` : ''}
+                                    `}
                                 </li>
                             `).join('')}
                         </ul>
