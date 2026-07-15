@@ -84,10 +84,12 @@
             display: flex;
             gap: 15px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
-        input[type="text"], input[type="file"] {
+        .input-group input {
             flex: 1;
+            min-width: 150px;
             padding: 15px 20px;
             border: 2px solid #e1e5e9;
             border-radius: 12px;
@@ -95,7 +97,11 @@
             transition: all 0.3s ease;
         }
 
-        input[type="text"]:focus, input[type="file"]:focus {
+        .input-group .price-input {
+            max-width: 150px;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, input[type="file"]:focus {
             outline: none;
             border-color: #4facfe;
             box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
@@ -157,6 +163,16 @@
         .btn-danger:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(250, 112, 154, 0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(168, 237, 234, 0.4);
         }
 
         .lists-container {
@@ -221,6 +237,53 @@
             flex-wrap: wrap;
         }
 
+        .list-total {
+            margin-top: 15px;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .list-total-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .list-total-amount {
+            font-size: 24px;
+            font-weight: 700;
+            color: #4facfe;
+        }
+
+        .grand-total {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .grand-total-label {
+            font-size: 18px;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .grand-total-amount {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
         .items-list {
             list-style: none;
             min-height: 100px;
@@ -235,6 +298,8 @@
             border-radius: 12px;
             transition: all 0.3s ease;
             position: relative;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .item:hover {
@@ -256,11 +321,22 @@
             color: #555;
             padding: 5px 10px;
             cursor: pointer;
+            min-width: 100px;
         }
 
         .item-text.completed {
             text-decoration: line-through;
             opacity: 0.6;
+        }
+
+        .item-price {
+            font-weight: 600;
+            color: #4facfe;
+            padding: 5px 10px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            min-width: 80px;
+            text-align: center;
         }
 
         .item-edit-input {
@@ -270,6 +346,15 @@
             border-radius: 8px;
             font-size: 16px;
             margin-right: 10px;
+            min-width: 100px;
+        }
+
+        .item-edit-price {
+            width: 120px;
+            padding: 8px 12px;
+            border: 2px solid #4facfe;
+            border-radius: 8px;
+            font-size: 16px;
         }
 
         .item-actions {
@@ -490,6 +575,10 @@
                 flex-direction: column;
             }
             
+            .input-group .price-input {
+                max-width: 100%;
+            }
+
             .user-info {
                 flex-direction: column;
                 gap: 15px;
@@ -506,7 +595,8 @@
             }
             
             .item {
-                flex-wrap: wrap;
+                flex-direction: column;
+                align-items: stretch;
             }
             
             .item-actions {
@@ -514,9 +604,18 @@
                 width: 100%;
                 justify-content: flex-end;
             }
+
+            .item-edit-input, .item-edit-price {
+                width: 100%;
+            }
             
             .modal-actions {
                 flex-direction: column;
+            }
+
+            .grand-total {
+                flex-direction: column;
+                text-align: center;
             }
         }
     </style>
@@ -534,9 +633,16 @@
         </div>
 
         <div class="main-content">
+            <!-- Gran Total -->
+            <div class="grand-total">
+                <span class="grand-total-label">💰 Total General</span>
+                <span class="grand-total-amount" id="grandTotal">$0</span>
+            </div>
+
             <div class="input-section">
                 <div class="input-group">
                     <input type="text" id="productInput" placeholder="¿Qué quieres comprar?">
+                    <input type="number" id="priceInput" class="price-input" placeholder="Precio" step="100" min="0">
                     <button class="btn btn-primary" onclick="addProduct()">
                         ➕ Agregar
                     </button>
@@ -637,6 +743,9 @@
             document.getElementById('productInput').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') addProduct();
             });
+            document.getElementById('priceInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addProduct();
+            });
         });
 
         function loadUserInfo() {
@@ -692,12 +801,30 @@
 
         function addProduct() {
             const input = document.getElementById('productInput');
+            const priceInput = document.getElementById('priceInput');
             const productName = input.value.trim();
+            const price = parseFloat(priceInput.value) || 0;
             
             if (!productName) return;
             
             if (!currentListId) {
                 createNewList();
+                // Esperar a que se cree la lista y luego agregar el producto
+                setTimeout(() => {
+                    const list = lists.find(l => l.id === currentListId);
+                    if (list) {
+                        list.items.push({
+                            id: Date.now().toString(),
+                            name: productName,
+                            price: price,
+                            completed: false
+                        });
+                        saveLists();
+                        renderLists();
+                        input.value = '';
+                        priceInput.value = '';
+                    }
+                }, 100);
                 return;
             }
             
@@ -706,11 +833,13 @@
                 list.items.push({
                     id: Date.now().toString(),
                     name: productName,
+                    price: price,
                     completed: false
                 });
                 saveLists();
                 renderLists();
                 input.value = '';
+                priceInput.value = '';
             }
         }
 
@@ -727,7 +856,7 @@
                     <div class="modal-item-icon">🛒</div>
                     <div class="modal-item-info">
                         <div class="modal-item-name">${item.name}</div>
-                        <div class="modal-item-list">Lista: ${list.name}</div>
+                        <div class="modal-item-list">Lista: ${list.name} • Precio: $${item.price.toLocaleString()}</div>
                     </div>
                 `;
                 
@@ -759,13 +888,14 @@
             
             if (list) {
                 listToDelete = listId;
+                const total = calculateListTotal(list);
                 
                 const detailDiv = document.getElementById('deleteListDetail');
                 detailDiv.innerHTML = `
                     <div class="modal-item-icon">📋</div>
                     <div class="modal-item-info">
                         <div class="modal-item-name">${list.name}</div>
-                        <div class="modal-item-list">${list.items.length} productos • ${list.createdAt}</div>
+                        <div class="modal-item-list">${list.items.length} productos • Total: $${total.toLocaleString()} • ${list.createdAt}</div>
                     </div>
                 `;
                 
@@ -805,12 +935,13 @@
             renderLists();
         }
 
-        function saveEditItem(listId, itemId, newName) {
+        function saveEditItem(listId, itemId, newName, newPrice) {
             const list = lists.find(l => l.id === listId);
             const item = list?.items.find(i => i.id === itemId);
             
             if (item && newName && newName.trim()) {
                 item.name = newName.trim();
+                item.price = parseFloat(newPrice) || 0;
                 editingItem = null;
                 saveLists();
                 renderLists();
@@ -847,8 +978,13 @@
             if (!list) return;
 
             const user = userInfo.name !== 'Tu Nombre' ? ` de ${userInfo.name}` : '';
-            const itemsText = list.items.map(item => `• ${item.name} ${item.completed ? '✅' : '⬜'}`).join('\n');
-            const message = `🛒 Lista de compras${user}\n\n${list.name}\n${itemsText || '📝 Vacía'}\n\n📅 ${list.createdAt}`;
+            const total = calculateListTotal(list);
+            const itemsText = list.items.map(item => {
+                const priceText = item.price > 0 ? ` - $${item.price.toLocaleString()}` : '';
+                return `• ${item.name}${priceText} ${item.completed ? '✅' : '⬜'}`;
+            }).join('\n');
+            
+            const message = `🛒 Lista de compras${user}\n\n${list.name}\n${itemsText || '📝 Vacía'}\n\n💰 Total: $${total.toLocaleString()}\n📅 ${list.createdAt}`;
             
             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
             window.open(whatsappUrl, '_blank');
@@ -859,12 +995,22 @@
             renderLists();
         }
 
+        function calculateListTotal(list) {
+            return list.items.reduce((sum, item) => sum + (item.price || 0), 0);
+        }
+
+        function calculateGrandTotal() {
+            return lists.reduce((sum, list) => sum + calculateListTotal(list), 0);
+        }
+
         function saveLists() {
             localStorage.setItem('shoppingLists', JSON.stringify(lists));
         }
 
         function renderLists() {
             const container = document.getElementById('listsContainer');
+            const grandTotal = calculateGrandTotal();
+            document.getElementById('grandTotal').textContent = `$${grandTotal.toLocaleString()}`;
             
             if (lists.length === 0) {
                 container.innerHTML = `
@@ -878,7 +1024,12 @@
                 return;
             }
 
-            container.innerHTML = lists.map(list => `
+            container.innerHTML = lists.map(list => {
+                const total = calculateListTotal(list);
+                const itemCount = list.items.length;
+                const completedCount = list.items.filter(item => item.completed).length;
+                
+                return `
                 <div class="list-card ${currentListId === list.id ? 'active' : ''}">
                     <div class="list-header">
                         <div class="list-title-container">
@@ -887,7 +1038,7 @@
                             ` : `
                                 <h3 class="list-title">${list.name}</h3>
                             `}
-                            <small style="color: #888;">${list.createdAt} • ${list.items.length} productos</small>
+                            <small style="color: #888;">${list.createdAt} • ${itemCount} productos (${completedCount} completados)</small>
                         </div>
                         <div class="list-actions">
                             ${editingListName === list.id ? `
@@ -910,13 +1061,15 @@
                                     ` : ''}
                                     
                                     ${editingItem && editingItem.listId === list.id && editingItem.itemId === item.id ? `
-                                        <input type="text" class="item-edit-input" id="edit-${item.id}" value="${item.name}" placeholder="Nombre del producto" autofocus>
+                                        <input type="text" class="item-edit-input" id="edit-name-${item.id}" value="${item.name}" placeholder="Nombre del producto">
+                                        <input type="number" class="item-edit-price" id="edit-price-${item.id}" value="${item.price}" placeholder="Precio" step="100" min="0">
                                         <div class="item-actions">
-                                            <button class="item-save" onclick="saveEditItem('${list.id}', '${item.id}', document.getElementById('edit-${item.id}').value)">💾</button>
+                                            <button class="item-save" onclick="saveEditItem('${list.id}', '${item.id}', document.getElementById('edit-name-${item.id}').value, document.getElementById('edit-price-${item.id}').value)">💾</button>
                                             <button class="item-cancel" onclick="cancelEditItem()">✖</button>
                                         </div>
                                     ` : `
                                         <span class="item-text ${item.completed ? 'completed' : ''}" onclick="${currentListId === list.id ? `startEditItem('${list.id}', '${item.id}')` : ''}">${item.name}</span>
+                                        <span class="item-price">$${item.price.toLocaleString()}</span>
                                         ${currentListId === list.id && !editingItem ? `
                                             <div class="item-actions">
                                                 <button class="item-edit" onclick="startEditItem('${list.id}', '${item.id}')">✏️</button>
@@ -933,8 +1086,12 @@
                             <p>Esta lista está vacía. Selecciona "Editar" para agregar productos.</p>
                         </div>
                     `}
+                    <div class="list-total">
+                        <span class="list-total-label">💰 Subtotal</span>
+                        <span class="list-total-amount">$${total.toLocaleString()}</span>
+                    </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         // Cerrar modales al hacer clic fuera
